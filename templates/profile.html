@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Последние обновления на сайте{% endblock %}
+{% block header %}Последние обновления на сайте{% endblock %}
+{% block content %}
+
+<main role="main" class="container">
+    <div class="row">
+            <div class="col-md-3 mb-3 mt-1">
+                    <div class="card">
+                            <div class="card-body">
+                                    <div class="h2">
+                                        <!-- Имя автора -->
+                                        {{ author.get_full_name }}
+                                    </div>
+                                    <div class="h3 text-muted">
+                                         <!-- username автора -->
+                                         {{ author.username }}
+                                    </div>
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                            <div class="h6 text-muted">
+                                            Подписчиков: Только его бабушка <br />
+                                            Подписан: Sasha Grey
+                                            </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                            <div class="h6 text-muted">
+                                                <!-- Количество записей -->
+                                                Записей: {{ posts.count }}
+                                            </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        {% if following %}
+                                        <a class="btn btn-lg btn-light" 
+                                                href="{% url 'profile_unfollow' author.username %}" role="button"> 
+                                                Отписаться 
+                                        </a> 
+                                        {% else %}
+                                        <a class="btn btn-lg btn-primary" 
+                                                href="{% url 'profile_follow' author.username %}" role="button">
+                                        Подписаться 
+                                        </a>
+                                        {% endif %}
+                                    </li>
+                            </ul>
+                    </div>
+            </div>
+
+            <div class="col-md-9">                
+
+                <!-- Начало блока с отдельным постом --> 
+                    <div class="card mb-3 mt-1 shadow-sm">
+                            <div class="card-body">
+                                    <p class="card-text">
+                                            <!-- Ссылка на страницу автора  -->
+                                            <a href="/{{ author }}/"><strong class="d-block text-gray-dark">{{ author }}</strong></a>
+                                            <!-- Текст поста -->
+                                            <div class="col-md-9">
+                                                {% load thumbnail %}
+                                                {% for post in page %}
+                                                        {% include "post_item.html" with post=post %}
+                                                {% endfor %}
+                                 
+                                                <!-- Остальные посты -->
+                                 
+                                                {% if page.has_other_pages %}
+                                    {% include "paginator.html" with items=page paginator=paginator %}
+                                {% endif %}
+                                </div>
+                                    </div>
+</main>
+
+{% endblock %}
