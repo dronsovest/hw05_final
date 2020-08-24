@@ -144,3 +144,5 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
+
+LOGIN_URL = "/auth/login/"

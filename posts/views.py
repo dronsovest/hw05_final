@@ -67,8 +67,9 @@ def profile(request, username):
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     following = False
-    if Follow.objects.filter(user=request.user, author=author).count() > 0:
-        following = True
+    if request.user.is_authenticated:
+        if Follow.objects.filter(user=request.user, author=author).count() > 0:
+            following = True
     return render(request, 'profile.html', {
                                                 'posts': posts,
                                                 'author': author,
@@ -83,7 +84,7 @@ def post_view(request, username, post_id):
     author = get_object_or_404(User, username=username)
     comments = post.comments.all()
     posts_count = author.posts.all().count()
-    form = CommentForm
+    form = CommentForm()
     return render(request, 'post.html', {
                                             'post': post,
                                             'posts': posts_count,
@@ -170,8 +171,8 @@ def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
     if request.user == author: 
         return redirect("profile", username=username)
-    new_follow = Follow(user=request.user, author=author)
-    new_follow.save()
+    new_follow = Follow.objects.get_or_create(user=request.user, author=author)
+    #new_follow.save()
     return redirect("profile", username=username)
 
 
