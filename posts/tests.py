@@ -3,10 +3,11 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.cache import cache
 
-from .models import Post, Group
+from .models import Post, Group, Comment
 
 
 User = get_user_model()
+
 
 def test_context(self, response):
     self.assertEqual(response.context['page'][0].text, 'No fate')
@@ -17,6 +18,7 @@ def test_context(self, response):
 class TestProfile(TestCase):
     def setUp(self):
         self.client = Client()
+        self.client2 = Client()
         self.user = User.objects.create_user(
             username='sarah', email='s.conor@mail.ru', password='234567Abc'
         )
@@ -30,6 +32,10 @@ class TestProfile(TestCase):
                                                             'text': 'No fate',
                                                             'group': 1
                                                           })
+        self.user2 = User.objects.create_user(
+            username='john', email='j.conor@mail.ru', password='123456Abc'
+        )
+        self.client2.force_login(self.user2)
 
     def test_profile(self):
         response = self.client.get(reverse(
@@ -139,7 +145,7 @@ class TestProfile(TestCase):
                                     )
         self.assertEqual(
                             response.redirect_chain,
-                            [('/accounts/login/?next=/new/', 302)]
+                            [('/auth/login/?next=/new/', 302)]
                         )
         self.assertEqual(Post.objects.all().count(), 1)
 
@@ -152,6 +158,50 @@ class TestProfile(TestCase):
                                                  ]
                                           ))
         self.assertEqual(response.status_code, 404)
+
+# Авторизованный пользователь может подписываться на других
+# пользователей и удалять их из подписок
+# Новая запись пользователя появляется в ленте тех, кто на него
+# подписан и не появляется в ленте тех, кто не подписан на него.
+    def test_following_unfollowing(self):
+        response = self.client2.get(reverse(
+                                            'profile_follow',
+                                            args=[self.user.username]
+                                    ),
+                                    follow=True
+                                    )
+        self.assertEqual(True, response.context['following'])
+        response = self.client2.get(reverse('follow_index'))
+        test_context(self, response)
+        response = self.client2.get(reverse(
+                                            'profile_unfollow',
+                                            args=[self.user.username]
+                                    ),
+                                    follow=True
+                                    )
+        self.assertEqual(False, response.context['following'])
+        response = self.client2.get(reverse('follow_index'))
+        self.assertEqual(0, len(response.context['page']))
+
+# Только авторизированный пользователь может комментировать посты
+    def test_comment_not_authorized_user(self):
+        self.client2.logout()
+        response = self.client2.post(reverse(
+            'add_comment',
+            args=[self.user.username, Post.objects.first().id],
+        ),
+            {'text': 'Hi, mom'},
+            follow=True
+        )
+        self.assertEqual(
+                            response.redirect_chain,
+                            [(
+                                f'/auth/login/?next=/{self.user.username}'
+                                f'/{Post.objects.first().id}/comment/',
+                                302
+                            )]
+                        )
+        self.assertEqual(Comment.objects.all().count(), 0)
 
 
 class TestImages(TestCase):
@@ -177,10 +227,13 @@ class TestImages(TestCase):
                                                     self.user.username,
                                                     Post.objects.first().id
                                                  ]
-                                            ),
-                                    {'text': 'Test post with img', 'image':img},
-                                    follow=True
-                                    )
+                                        ),
+                                        {
+                                            'text': 'Test post with img',
+                                            'image': img
+                                        },
+                                        follow=True
+                                        )
             self.assertIn('<img', str(response.content.decode()))
 
         response = self.client.get('')
@@ -194,8 +247,11 @@ class TestImages(TestCase):
                                                     Post.objects.first().id
                                                  ]
                                         ),
-                                    {'text': 'Test post with img', 'image':img},
-                                    follow=True
-                                    )
+                                        {
+                                            'text': 'Test post with img',
+                                            'image': img
+                                        },
+                                        follow=True
+                                        )
             errors = 'Отправленный файл пуст.'
             self.assertFormError(response, 'form', 'image', errors)

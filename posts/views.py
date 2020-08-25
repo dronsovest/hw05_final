@@ -121,9 +121,9 @@ def post_edit(request, username, post_id):
 
 def page_not_found(request, exception):
     return render(
-        request, 
-        "misc/404.html", 
-        {"path": request.path}, 
+        request,
+        "misc/404.html",
+        {"path": request.path},
         status=404
     )
 
@@ -169,10 +169,9 @@ def follow_index(request):
 @login_required
 def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
-    if request.user == author: 
+    if request.user == author:
         return redirect("profile", username=username)
     new_follow = Follow.objects.get_or_create(user=request.user, author=author)
-    #new_follow.save()
     return redirect("profile", username=username)
 
 
@@ -180,4 +179,4 @@ def profile_follow(request, username):
 def profile_unfollow(request, username):
     author = get_object_or_404(User, username=username)
     Follow.objects.filter(user=request.user, author=author).delete()
-    return redirect ("profile", username=username)
+    return redirect("profile", username=username)
