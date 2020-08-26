@@ -1,0 +1,28 @@
+<div class="card">
+                        
+    <div class="card-body">
+            
+            <div class="h2">
+                <!-- Имя автора -->
+                {{ post.author.get_full_name }}
+            </div>
+            <div class="h3 text-muted">
+                 <!-- username автора -->
+                 {{ post.author }}
+            </div>
+    </div>
+    <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+                    <div class="h6 text-muted">
+                    Подписчиков: Только его бабушка <br />
+                    Подписан: Sasha Grey
+                    </div>
+            </li>
+            <li class="list-group-item">
+                    <div class="h6 text-muted">
+                        <!--Количество записей -->
+                        Записей: {{ posts }}
+                    </div>
+            </li>
+    </ul>
+</div>

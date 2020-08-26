@@ -2,8 +2,10 @@ from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.cache import cache
+import os
 
 from .models import Post, Group, Comment
+from PIL import Image
 
 
 User = get_user_model()
@@ -36,6 +38,12 @@ class TestProfile(TestCase):
             username='john', email='j.conor@mail.ru', password='123456Abc'
         )
         self.client2.force_login(self.user2)
+        response = self.client2.get(reverse(
+                                            'profile_follow',
+                                            args=[self.user.username]
+                                    ),
+                                    follow=True
+                                    )
 
     def test_profile(self):
         response = self.client.get(reverse(
@@ -163,16 +171,16 @@ class TestProfile(TestCase):
 # пользователей и удалять их из подписок
 # Новая запись пользователя появляется в ленте тех, кто на него
 # подписан и не появляется в ленте тех, кто не подписан на него.
-    def test_following_unfollowing(self):
+    def test_following(self):
         response = self.client2.get(reverse(
-                                            'profile_follow',
+                                            'profile',
                                             args=[self.user.username]
-                                    ),
-                                    follow=True
-                                    )
+                                    ))
         self.assertEqual(True, response.context['following'])
         response = self.client2.get(reverse('follow_index'))
         test_context(self, response)
+
+    def test_unfollowing(self):
         response = self.client2.get(reverse(
                                             'profile_unfollow',
                                             args=[self.user.username]
@@ -220,24 +228,27 @@ class TestImages(TestCase):
             group=self.group)
 
     def test_images(self):
-        with open('media/posts/Тест.jpg', 'rb') as img:
+        img = Image.new('RGB', (100, 200))
+        img.save('media/image.jpg')
+        with open('media/image.jpg', 'rb') as img:
             response = self.client.post(reverse(
                                             'post_edit',
                                             args=[
                                                     self.user.username,
                                                     Post.objects.first().id
                                                  ]
-                                        ),
-                                        {
-                                            'text': 'Test post with img',
-                                            'image': img
-                                        },
-                                        follow=True
-                                        )
+                                    ),
+                                    {
+                                        'text': 'Test post with img',
+                                        'image': img
+                                    },
+                                    follow=True
+                                    )
             self.assertIn('<img', str(response.content.decode()))
 
         response = self.client.get('')
         self.assertIn('<img', str(response.content.decode()))
+        os.remove('media/image.jpg')
 
         with open('media/posts/Тест.txt', 'rb') as img:
             response = self.client.post(reverse(

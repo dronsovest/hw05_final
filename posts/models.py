@@ -30,13 +30,17 @@ class Post(models.Model):
                               verbose_name="Сообщество",
                               help_text="Выберете сообщество. Если хотите."
                               )
-    image = models.ImageField(upload_to='posts/', blank=True, null=True)
+    image = models.ImageField(upload_to="posts/",
+                              blank=True,
+                              null=True,
+                              verbose_name="Изображение"
+                             )
 
     def __str__(self):
         return self.text
 
     class Meta:
-        ordering = ["-pub_date"]
+        ordering = ("-pub_date",)
 
 
 class Comment(models.Model):
@@ -71,3 +75,6 @@ class Follow(models.Model):
         related_name="following",
         on_delete=models.CASCADE
     )
+
+    class Meta:
+        unique_together = ("user", "author")

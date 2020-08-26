@@ -39,20 +39,17 @@ def group_posts(request, slug):
 @login_required
 def new_post(request):
     form = PostForm()
-    header_name = "Добавить запись"
-    button_name = "Добавить"
+    edit = False
     if not request.method == "POST":
         return render(request, "new.html", {
                                                 "form": form,
-                                                "header_name": header_name,
-                                                "button_name": button_name
+                                                "edit": edit,
                                             })
     form = PostForm(request.POST, files=request.FILES)
     if not form.is_valid():
         return render(request, "new.html", {
                                                 "form": form,
-                                                "header_name": header_name,
-                                                "button_name": button_name
+                                                "edit": edit,
                                             })
     post_get = form.save(commit=False)
     post_get.author = request.user
@@ -95,20 +92,18 @@ def post_view(request, username, post_id):
 
 
 def post_edit(request, username, post_id):
-    post = get_object_or_404(Post, id=post_id)
+    post = get_object_or_404(Post, author__username=username, id=post_id)
     if post.author != request.user:
         return redirect("post", username=post.author, post_id=post_id)
     form = PostForm(
         request.POST or None,
         files=request.FILES or None,
         instance=post)
-    header_name = "Редактировать запись"
-    button_name = "Сохранить"
+    edit = True
     if not form.is_valid():
         return render(request, "new.html", {
                                                 "form": form,
-                                                "header_name": header_name,
-                                                "button_name": button_name,
+                                                "edit": edit,
                                                 "post": post,
                                             })
     post_get = form.save(commit=False)
@@ -134,13 +129,7 @@ def server_error(request):
 
 @login_required
 def add_comment(request, username, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    form = CommentForm()
-    if not request.method == "POST":
-        return render(request, "comments.html", {
-                                                    "form": form,
-                                                    "post": post,
-                                                })
+    post = get_object_or_404(Post, author__username=username, id=post_id)
     form = CommentForm(request.POST or None)
     if not form.is_valid():
         return render(request, "comments.html", {

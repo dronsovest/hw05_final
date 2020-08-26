@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Создание нового поста{% endblock %}
-{% block header %}Запости пост{% endblock %}
+{% block title %}{% if edit %}Редактировать пост{% else %}Создать новый пост{% endif %}{% endblock %}
+{% block header %}{% if edit %}Редактировать пост{% else %}Создать новый пост{% endif %}{% endblock %}
 {% block content %}
 {% load user_filters %}
 
     <div class="row justify-content-center">
     <div class="col-md-8 p-5">
         <div class="card">
-            <div class="card-header">{{ header_name }}</div>
+            <div class="card-header">{% if edit %}Редактировать пост{% else %}Создать новый пост{% endif %}</div>
             <div class="card-body">
                 
                 {% for error in form.errors %}
@@ -33,7 +33,7 @@
  
                     <div class="col-md-6 offset-md-4">              
                             <button type="submit" class="btn btn-primary">
-                                {{ button_name }}
+                                {% if edit %}Сохранить{% else %}Создать{% endif %}
                             </button>
                     </div>
                 </form>
