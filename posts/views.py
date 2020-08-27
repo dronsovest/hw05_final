@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
-from django.shortcuts import render, get_object_or_404, redirect,\
-    get_list_or_404
+from django.shortcuts import (render, get_object_or_404, redirect,
+    get_list_or_404)
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
@@ -65,7 +65,7 @@ def profile(request, username):
     page = paginator.get_page(page_number)
     following = False
     if request.user.is_authenticated:
-        if Follow.objects.filter(user=request.user, author=author).count() > 0:
+        if Follow.objects.filter(user=request.user, author=author).exists():
             following = True
     return render(request, 'profile.html', {
                                                 'posts': posts,
@@ -145,8 +145,10 @@ def add_comment(request, username, post_id):
 
 @login_required
 def follow_index(request):
-    post_list = Post.objects.filter(author__following__user=request.user)
-    paginator = Paginator(post_list, 10)
+    user = request.user
+    authors = user.follower.all().values_list('author')
+    posts_follow = Post.objects.filter(author__in=authors)
+    paginator = Paginator(posts_follow, 10)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
     return render(request, "follow.html", {

@@ -44,6 +44,7 @@ class TestProfile(TestCase):
                                     ),
                                     follow=True
                                     )
+        cache.clear()
 
     def test_profile(self):
         response = self.client.get(reverse(

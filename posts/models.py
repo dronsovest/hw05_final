@@ -34,7 +34,7 @@ class Post(models.Model):
                               blank=True,
                               null=True,
                               verbose_name="Изображение"
-                             )
+                              )
 
     def __str__(self):
         return self.text
