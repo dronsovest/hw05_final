@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
 from django.shortcuts import (render, get_object_or_404, redirect,
-    get_list_or_404)
+                              get_list_or_404)
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
@@ -63,17 +63,23 @@ def profile(request, username):
     paginator = Paginator(posts, 5)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
+    posts_count = posts.count()
+    followers_count = Follow.objects.filter(author=author).count()
+    followings_count = Follow.objects.filter(user=author).count()
     following = False
     if request.user.is_authenticated:
-        if Follow.objects.filter(user=request.user, author=author).exists():
-            following = True
+        following = Follow.objects.filter(user=request.user,
+                                          author=author).exists()
     return render(request, 'profile.html', {
-                                                'posts': posts,
-                                                'author': author,
-                                                'page': page,
-                                                'paginator': paginator,
-                                                'following': following,
-                                            })
+        'posts': posts,
+        'posts_count': posts_count,
+        'author': author,
+        'page': page,
+        'paginator': paginator,
+        'following': following,
+        'followers_count': followers_count,
+        'followings_count': followings_count,
+    })
 
 
 def post_view(request, username, post_id):
@@ -81,14 +87,18 @@ def post_view(request, username, post_id):
     author = get_object_or_404(User, username=username)
     comments = post.comments.all()
     posts_count = author.posts.all().count()
+    followers_count = Follow.objects.filter(author=author).count()
+    followings_count = Follow.objects.filter(user=author).count()
     form = CommentForm()
     return render(request, 'post.html', {
-                                            'post': post,
-                                            'posts': posts_count,
-                                            'author': author,
-                                            'form': form,
-                                            'items': comments,
-                                        })
+        'post': post,
+        'posts_count': posts_count,
+        'author': author,
+        'form': form,
+        'items': comments,
+        'followers_count': followers_count,
+        'followings_count': followings_count,
+    })
 
 
 def post_edit(request, username, post_id):
@@ -145,9 +155,7 @@ def add_comment(request, username, post_id):
 
 @login_required
 def follow_index(request):
-    user = request.user
-    authors = user.follower.all().values_list('author')
-    posts_follow = Post.objects.filter(author__in=authors)
+    posts_follow = Post.objects.filter(author__following__user=request.user)
     paginator = Paginator(posts_follow, 10)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)

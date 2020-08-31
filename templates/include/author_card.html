@@ -4,25 +4,38 @@
             
             <div class="h2">
                 <!-- Имя автора -->
-                {{ post.author.get_full_name }}
+                {{ author.get_full_name }}
             </div>
             <div class="h3 text-muted">
                  <!-- username автора -->
-                 {{ post.author }}
+                 {{ author }}
             </div>
     </div>
     <ul class="list-group list-group-flush">
             <li class="list-group-item">
                     <div class="h6 text-muted">
-                    Подписчиков: Только его бабушка <br />
-                    Подписан: Sasha Grey
+                    Подписчиков: {{ followers_count }} <br />
+                    Подписан: {{ followings_count }}
                     </div>
             </li>
             <li class="list-group-item">
                     <div class="h6 text-muted">
                         <!--Количество записей -->
-                        Записей: {{ posts }}
+                        Записей: {{ posts_count }}
                     </div>
             </li>
+            <li class="list-group-item"> 
+                {% if following %} 
+                <a class="btn btn-lg btn-light"  
+                        href="{% url 'profile_unfollow' author.username %}" role="button">  
+                        Отписаться  
+                </a>  
+                {% else %} 
+                <a class="btn btn-lg btn-primary"  
+                        href="{% url 'profile_follow' author.username %}" role="button"> 
+                Подписаться  
+                </a> 
+                {% endif %} 
+            </li> 
     </ul>
 </div>
